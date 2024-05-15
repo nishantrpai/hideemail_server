@@ -9,6 +9,7 @@ from sympy import isprime
 
 # Set your bot's API token and your Telegram user ID
 TG_TOKEN = os.getenv("TG_TOKEN")
+print(TG_TOKEN)
 MY_ID = os.getenv("MY_ID")
 
 # Define the URL for sending messages via the Telegram Bot API
