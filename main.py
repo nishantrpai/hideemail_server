@@ -54,7 +54,7 @@ import smtpd
 import asyncore
 
 class CustomSMTPServer(smtpd.SMTPServer):
-    def process_message(self, peer, mailfrom, rcpttos, data):
+    def process_message(self, peer, mailfrom, rcpttos, data,mail_options=None,rcpt_options=None):
         print(f"Received message from: {mailfrom}")
         print(f"Message recipients: {rcpttos}")
         print("Message data:")
