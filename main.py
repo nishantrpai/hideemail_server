@@ -13,10 +13,10 @@ print(TG_TOKEN)
 MY_ID = os.getenv("MY_ID")
 
 # Define the URL for sending messages via the Telegram Bot API
-SEND_MESSAGE_URL = f'https://api.telegram.org/bot{TG_TOKEN}/sendMessage'
+SEND_MESSAGE_URL = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
 
 # Define the URL for receiving updates from the Telegram Bot API
-GET_UPDATES_URL = f'https://api.telegram.org/bot{TG_TOKEN}/getUpdates'
+GET_UPDATES_URL = f"https://api.telegram.org/bot{TG_TOKEN}/getUpdates"
 
 # Define the allowed chat ID
 ALLOWED_CHAT_ID = MY_ID
@@ -59,8 +59,8 @@ def get_updates():
     Returns:
         list: A list of updates (messages) received by the bot.
     """
-    print("Getting updates...", f'https://api.telegram.org/bot{TG_TOKEN}/getUpdates')
-    response = requests.get(f'https://api.telegram.org/bot{TG_TOKEN}/getUpdates')
+    print("Getting updates...", f"https://api.telegram.org/bot{TG_TOKEN}/getUpdates")
+    response = requests.get(f"https://api.telegram.org/bot{TG_TOKEN}/getUpdates")
     data = response.json()
     print(data)
     return data['result']
