@@ -59,6 +59,7 @@ def get_updates():
     Returns:
         list: A list of updates (messages) received by the bot.
     """
+    print("Getting updates...", GET_UPDATES_URL)
     response = requests.get(GET_UPDATES_URL)
     data = response.json()
     print(data)
