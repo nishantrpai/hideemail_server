@@ -1,9 +1,18 @@
+import os
+from telegram import ForceReply, Update
+from telegram.ext import Application, filters, MessageHandler
+from telegram import Bot
+
 # people will configure their telegram bot token here
-TG_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+TG_TOKEN = os.getenv("TG_TOKEN")
+MY_ID = os.getenv("MY_ID")
+
 
 # when they deploy a large random prime number will be generated
 import random
 from sympy import isprime
+
+domains = []
 
 def generate_large_random_prime(bit_length):
     """
@@ -61,11 +70,39 @@ class CustomSMTPServer(smtpd.SMTPServer):
         print(data)
         print("\n")
 
-# Replace '0.0.0.0' with the IP address or hostname of your server
-# Replace 25 with the port number you want to use for SMTP
-smtp_server = CustomSMTPServer(('0.0.0.0', 25), None)
 
-print("SMTP server started...")
 
-# Run the server indefinitely
-asyncore.loop()
+# when the telegram bot receives message we need to generate dynamic email
+# based on the domain
+
+def start(update, context):
+    update.message.reply_text('Hello! I am your Telegram bot.')
+
+# Define a function to handle incoming messages
+def echo(update, context):
+    # Check if the chat ID matches the allowed chat ID
+    if update.message.chat_id == ALLOWED_CHAT_ID:
+        update.message.reply_text(update.message.text)
+
+def main():
+    # Replace '0.0.0.0' with the IP address or hostname of your server
+    # Replace 25 with the port number you want to use for SMTP
+
+    # Initialize the Telegram bot
+    print("Starting the Telegram bot...")
+    
+    application = Application.builder().token(TG_TOKEN).build()
+
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
+
+    smtp_server = CustomSMTPServer(('0.0.0.0', 25), None)
+
+    print("SMTP server started...")
+
+    # Run the server indefinitely
+    asyncore.loop()
+
+if __name__ == '__main__':
+    main()
