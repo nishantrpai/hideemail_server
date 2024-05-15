@@ -60,6 +60,7 @@ def get_updates():
     """
     response = requests.get(GET_UPDATES_URL)
     data = response.json()
+    print(data)
     return data['result']
 
 class CustomSMTPServer(smtpd.SMTPServer):
