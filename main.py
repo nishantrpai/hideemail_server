@@ -1,18 +1,24 @@
 import os
-from telegram import ForceReply, Update
-from telegram.ext import Application, filters, MessageHandler
-from telegram import Bot
+import requests
+import random
+import time
+import hashlib
+import smtpd
+import asyncore
+from sympy import isprime
 
-# people will configure their telegram bot token here
+# Set your bot's API token and your Telegram user ID
 TG_TOKEN = os.getenv("TG_TOKEN")
 MY_ID = os.getenv("MY_ID")
 
+# Define the URL for sending messages via the Telegram Bot API
+SEND_MESSAGE_URL = f'https://api.telegram.org/bot{TG_TOKEN}/sendMessage'
 
-# when they deploy a large random prime number will be generated
-import random
-from sympy import isprime
+# Define the URL for receiving updates from the Telegram Bot API
+GET_UPDATES_URL = f'https://api.telegram.org/bot{TG_TOKEN}/getUpdates'
 
-domains = []
+# Define the allowed chat ID
+ALLOWED_CHAT_ID = MY_ID
 
 def generate_large_random_prime(bit_length):
     """
@@ -25,42 +31,36 @@ def generate_large_random_prime(bit_length):
         int: A large random prime number.
     """
     while True:
-        # Generate a random number of the specified bit length
         n = random.getrandbits(bit_length)
-        
-        # Ensure that the number is odd and has the desired bit length
         n |= (1 << bit_length - 1) | 1
-        
-        # Check if the number is prime
         if isprime(n):
             return n
 
-# Example usage:
-bit_length = 1024  # Specify the desired bit length
-prime_number = generate_large_random_prime(bit_length)
-print(prime_number, '\n')
+def send_message(chat_id, text):
+    """
+    Send a message to the specified chat ID using the Telegram Bot API.
+    
+    Parameters:
+        chat_id (int): The ID of the chat where the message should be sent.
+        text (str): The text of the message.
+    """
+    params = {'chat_id': chat_id, 'text': text}
+    response = requests.post(SEND_MESSAGE_URL, params=params)
+    if response.ok:
+        print('Message sent successfully!')
+    else:
+        print('Failed to send message:', response.text)
 
-# get current epoch time
-import time
-current_time = int(time.time())
-print(current_time)
-
-# make a hash of the prime number and current epoch time
-import hashlib
-hash_object = hashlib.sha256(str(prime_number).encode() + str(current_time).encode())
-print(hash_object.hexdigest())
-# this hash will be used to encrypt the email based on the domain we want to share
-
-email ='test@test.com'
-domain ='apple.com'
-gen_email = hashlib.sha256(email.encode() + domain.encode() + hash_object.hexdigest().encode())
-
-# for this domain this is the encrypted email
-print('0x' + gen_email.hexdigest())
-
-# RUN YOUR SMTP SERVER
-import smtpd
-import asyncore
+def get_updates():
+    """
+    Get updates (messages) from the Telegram Bot API.
+    
+    Returns:
+        list: A list of updates (messages) received by the bot.
+    """
+    response = requests.get(GET_UPDATES_URL)
+    data = response.json()
+    return data['result']
 
 class CustomSMTPServer(smtpd.SMTPServer):
     def process_message(self, peer, mailfrom, rcpttos, data,mail_options=None,rcpt_options=None):
@@ -70,39 +70,42 @@ class CustomSMTPServer(smtpd.SMTPServer):
         print(data)
         print("\n")
 
-
-
-# when the telegram bot receives message we need to generate dynamic email
-# based on the domain
-
-def start(update, context):
-    update.message.reply_text('Hello! I am your Telegram bot.')
-
-# Define a function to handle incoming messages
-def echo(update, context):
-    # Check if the chat ID matches the allowed chat ID
-    if update.message.chat_id == ALLOWED_CHAT_ID:
-        update.message.reply_text(update.message.text)
-
 def main():
-    # Replace '0.0.0.0' with the IP address or hostname of your server
-    # Replace 25 with the port number you want to use for SMTP
+    # Generate a large random prime number
+    bit_length = 1024
+    prime_number = generate_large_random_prime(bit_length)
+    print(prime_number)
 
-    # Initialize the Telegram bot
-    print("Starting the Telegram bot...")
-    
-    application = Application.builder().token(TG_TOKEN).build()
+    # Get current epoch time
+    current_time = int(time.time())
+    print(current_time)
 
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+    # Make a hash of the prime number and current epoch time
+    hash_object = hashlib.sha256(str(prime_number).encode() + str(current_time).encode())
+    print(hash_object.hexdigest())
 
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    # Example email and domain
+    email ='test@test.com'
+    domain ='apple.com'
+    gen_email = hashlib.sha256(email.encode() + domain.encode() + hash_object.hexdigest().encode())
+    print('0x' + gen_email.hexdigest())
 
+    # Start the SMTP server
     smtp_server = CustomSMTPServer(('0.0.0.0', 25), None)
-
     print("SMTP server started...")
 
-    # Run the server indefinitely
-    asyncore.loop()
+    # Poll for updates from the Telegram Bot API and process messages
+    while True:
+        updates = get_updates()
+        for update in updates:
+            chat_id = update['message']['chat']['id']
+            text = update['message']['text']
+            if chat_id == ALLOWED_CHAT_ID:
+                # Process the message
+                print(f"Received message from chat ID {chat_id}: {text}")
+
+        # Add a delay before checking for updates again
+        time.sleep(1)
 
 if __name__ == '__main__':
     main()
