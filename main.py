@@ -59,8 +59,8 @@ def get_updates():
     Returns:
         list: A list of updates (messages) received by the bot.
     """
-    print("Getting updates...", GET_UPDATES_URL)
-    response = requests.get(GET_UPDATES_URL)
+    print("Getting updates...", f'https://api.telegram.org/bot{TG_TOKEN}/getUpdates')
+    response = requests.get(f'https://api.telegram.org/bot{TG_TOKEN}/getUpdates')
     data = response.json()
     print(data)
     return data['result']
