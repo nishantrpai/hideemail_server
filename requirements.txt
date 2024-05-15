@@ -1,2 +1,2 @@
-python-telegram-bot==21.1.1
+Requests==2.31.0
 sympy==1.11.1
