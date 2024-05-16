@@ -32,6 +32,7 @@ MAIN_PRIME = ""
 CURRENT_EPOCH = ""
 SECRET_HASH = ""
 DOMAINS = {}
+UPDATE_IDS = []
 
 
 def generate_large_random_prime(bit_length):
@@ -149,13 +150,17 @@ def main():
     # Start the SMTP server
     smtp_server = CustomSMTPServer(("0.0.0.0", 465), None)
     print("SMTP server started...")
+    asyncore.loop()
 
     # Poll for updates from the Telegram Bot API and process messages
     while True:
         updates = get_updates()
         # get last update
         update = updates[-1:]
-        print(update)
+        if update[0]["update_id"] in UPDATE_IDS:
+            # return if the update has already been processed
+            print("Update already processed")
+            continue
         chat_id = update[0]["message"]["chat"]["id"]
         text = update[0]["message"]["text"]
         if chat_id == ALLOWED_CHAT_ID:
@@ -189,7 +194,6 @@ def main():
                     send_message(chat_id, f"Domain does not exist: {domain}")
                     return
                 del DOMAINS[domain]
-
         # Add a delay before checking for updates again
         time.sleep(1)
 
