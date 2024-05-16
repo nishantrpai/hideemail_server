@@ -76,7 +76,6 @@ def get_updates():
     """
     response = requests.get(GET_UPDATES_URL)
     data = response.json()
-    print(data)
     return data["result"]
 
 
@@ -155,7 +154,8 @@ def main():
     while True:
         updates = get_updates()
         # get last update
-        updates = updates[-1:]
+        update = updates[-1:]
+        print(update)
         chat_id = update["message"]["chat"]["id"]
         text = update["message"]["text"]
         if chat_id == ALLOWED_CHAT_ID:
