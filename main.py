@@ -13,10 +13,11 @@ import asyncore
 from sympy import isprime
 
 # Set your bot's API token and your Telegram user ID
-SMTP_PORT = int(os.getenv("PORT"))
-TG_TOKEN = os.getenv("TG_TOKEN")
+SMTP_PORT = int("25")
+TG_TOKEN = "6322093150:AAGHQzHg-w6HxaQjkm1F4qUFCybOswTEv7s"
 print(TG_TOKEN)
-MY_ID = os.getenv("MY_ID")
+MY_ID = 478921859
+LOOP = False
 
 # Define the URL for sending messages via the Telegram Bot API
 SEND_MESSAGE_URL = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
@@ -29,6 +30,7 @@ ALLOWED_CHAT_ID = MY_ID
 
 # Define the main email address
 MAIN_EMAIL = ""
+REDIRECT_IP = ""
 MAIN_PRIME = ""
 CURRENT_EPOCH = ""
 SECRET_HASH = ""
@@ -151,27 +153,33 @@ def main():
     # Start the SMTP server
     smtp_server = CustomSMTPServer(("0.0.0.0", SMTP_PORT), None)
     print("SMTP server started...", SMTP_PORT)
-    asyncore.loop()
 
     # Poll for updates from the Telegram Bot API and process messages
     while True:
+        # get updates
         updates = get_updates()
         # get last update
         update = updates[-1:]
-        if update[0]["update_id"] in UPDATE_IDS:
-            # return if the update has already been processed
-            print("Update already processed")
+        # check if the update ID has already been processed
+        update_id = update[0]["update_id"]
+        if update_id in UPDATE_IDS:
             continue
         chat_id = update[0]["message"]["chat"]["id"]
         text = update[0]["message"]["text"]
+        print(f"Received message from chat ID {chat_id}: {text}")
         if chat_id == ALLOWED_CHAT_ID:
             # Process the message
             print(f"Received message from chat ID {chat_id}: {text}")
             if text.startswith("SET EMAIL"):
                 global MAIN_EMAIL
+                print('SET EMAIL')
                 MAIN_EMAIL = text.split("SET EMAIL ")[1]
                 send_message(chat_id, f"Main email set to: {MAIN_EMAIL}")
 
+            if text.startswith("SET REDIRECT"):
+                global REDIRECT_IP
+                REDIRECT_IP = text.split("SET REDIRECT ")[1]
+                send_message(chat_id, f"Redirect IP set to: {REDIRECT_IP}")
             elif text.startswith("ADD DOMAIN"):
                 # global DOMAINS
                 domain = text.split("ADD DOMAIN ")[1]
@@ -186,7 +194,8 @@ def main():
                     + str(current_time).encode()
                 )
                 DOMAINS[domain] = current_time
-                send_message(chat_id, f"0x{gen_email.hexdigest()}")
+                print(f"Domain added: {domain}")
+                send_message(chat_id, f"0x{gen_email.hexdigest()}@{REDIRECT_IP}")
 
             elif text.startswith("REMOVE DOMAIN"):
                 # global DOMAINS
@@ -195,9 +204,13 @@ def main():
                     send_message(chat_id, f"Domain does not exist: {domain}")
                     return
                 del DOMAINS[domain]
+                print(f"Domain removed: {domain}")
+                send_message(chat_id, f"Domain removed: {domain}")
         # Add a delay before checking for updates again
+        # asyncore.loop()
+        UPDATE_IDS.append(update_id)
         time.sleep(1)
-
+    
 
 if __name__ == "__main__":
     main()
