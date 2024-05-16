@@ -156,8 +156,8 @@ def main():
         # get last update
         update = updates[-1:]
         print(update)
-        chat_id = update["message"]["chat"]["id"]
-        text = update["message"]["text"]
+        chat_id = update[0]["message"]["chat"]["id"]
+        text = update[0]["message"]["text"]
         if chat_id == ALLOWED_CHAT_ID:
             # Process the message
             print(f"Received message from chat ID {chat_id}: {text}")
