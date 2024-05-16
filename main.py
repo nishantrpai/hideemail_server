@@ -13,6 +13,7 @@ import asyncore
 from sympy import isprime
 
 # Set your bot's API token and your Telegram user ID
+SMTP_PORT = 587
 TG_TOKEN = os.getenv("TG_TOKEN")
 print(TG_TOKEN)
 MY_ID = os.getenv("MY_ID")
@@ -120,7 +121,7 @@ class CustomSMTPServer(smtpd.SMTPServer):
         else:
             # forward the email to the main email
             print(f"Forwarding email to: {MAIN_EMAIL}")
-            with smtplib.SMTP("0.0.0.0", 25) as server:
+            with smtplib.SMTP("0.0.0.0", SMTP_PORT) as server:
                 server.sendmail(mailfrom, MAIN_EMAIL, data)
             print("Email forwarded successfully!")
             # smtp response for successful email forwarding
@@ -148,7 +149,7 @@ def main():
     SECRET_HASH = hash_object.hexdigest()
 
     # Start the SMTP server
-    smtp_server = CustomSMTPServer(("0.0.0.0", 25), None)
+    smtp_server = CustomSMTPServer(("0.0.0.0", SMTP_PORT), None)
     print("SMTP server started...")
     asyncore.loop()
 
