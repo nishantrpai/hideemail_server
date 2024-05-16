@@ -150,7 +150,7 @@ def main():
 
     # Start the SMTP server
     smtp_server = CustomSMTPServer(("0.0.0.0", SMTP_PORT), None)
-    print("SMTP server started...")
+    print("SMTP server started...", SMTP_PORT)
     asyncore.loop()
 
     # Poll for updates from the Telegram Bot API and process messages
