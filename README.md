@@ -25,7 +25,7 @@ If anyone else tries to send an email to that address it will be rejected.
 3. Set MY_ID from the @userinfobot
 4. Run the server
 5. Set your email address SET EMAIL test@test.com
-6. For each domain you can generate a new email ADD DOMAIN test.com
+6. For each domain you can generate a new email ADD DOMAIN test.com (like the screenshot)
 
 Deploy the server on a VPS and you can generate one way email addresses for any domain.
 
